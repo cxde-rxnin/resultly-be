@@ -7,6 +7,7 @@ const resultSchema = new mongoose.Schema({
   semester: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
+  txHash: { type: String }, // Blockchain transaction hash
 });
 
 // Update the updatedAt field before saving

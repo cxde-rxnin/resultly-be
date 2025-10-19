@@ -14,12 +14,16 @@ export const addResult = async (req: Request, res: Response) => {
       semester,
     });
 
-    // Store metadata in Mongo
-    await Result.create({ studentId, courseCode, grade, semester });
+    // Extract transaction hash from blockchainRes
+    const txHash = blockchainRes?.digest || null;
+
+    // Store metadata in Mongo, including txHash
+    await Result.create({ studentId, courseCode, grade, semester, txHash });
 
     res.status(200).json({
       message: "Result added successfully",
       blockchainRes,
+      txHash,
     });
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
@@ -97,6 +101,25 @@ export const updateResult = async (req: Request, res: Response) => {
     res.status(200).json({
       message: "Result updated successfully",
       blockchainRes,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+};
+
+export const listTxHashes = async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.query;
+    if (!studentId) {
+      return res.status(400).json({ error: "studentId is required" });
+    }
+    // Find all results for the student and map to txHash
+    const results = await Result.find({ studentId });
+    const txHashes = results.map(r => r.txHash).filter(Boolean);
+    return res.status(200).json({
+      studentId,
+      txHashes,
+      count: txHashes.length,
     });
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
