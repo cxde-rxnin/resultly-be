@@ -92,15 +92,19 @@ export const updateResult = async (req: Request, res: Response) => {
       newGrade
     );
 
-    // Update in Mongo as well
+    // Extract transaction hash from blockchain response
+    const txHash = blockchainRes?.digest || null;
+
+    // Update in Mongo as well, including txHash
     await Result.findOneAndUpdate(
       { studentId, courseCode, semester },
-      { grade: newGrade, updatedAt: new Date() }
+      { grade: newGrade, updatedAt: new Date(), txHash }
     );
 
     res.status(200).json({
       message: "Result updated successfully",
       blockchainRes,
+      txHash,
     });
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
